@@ -3,6 +3,8 @@ name = "data-utility-belt"
 version = "0.1.0"
 authors = ["Adalberto Teixeira"]
 edition = "2018"
+description="Utility to perform a series of basic operation on data."
+license = "MIT"
 
 [dependencies]
 clap = "2.33.0"
