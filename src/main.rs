@@ -1,7 +1,13 @@
 extern crate clap;
+extern crate serde_json;
+#[macro_use]
+extern crate lazy_static;
+extern crate regex;
 use clap::{App, Arg, ArgMatches, SubCommand};
-use serde_json::{json, Map, Result, Value};
-use std::collections::HashMap;
+use regex::Regex;
+use serde_json::{json, Map, Value};
+use std::io::{self, Write};
+// use std::collections::HashMap;
 
 fn main() {
     let matches = App::new("Data utility Belt")
@@ -14,17 +20,35 @@ fn main() {
                 .author("Adalberto Teixeira")
                 .help("Perform operations on arrays. Array is always sorted, even when no other operations are performed.")
                 .arg(
+                    Arg::with_name("input")
+                        .help("Input to process")
+                        .index(1)
+                        .required(true),
+                )
+                .arg(
+                    Arg::with_name("output_separator")
+                        .long("output_separator")
+                        .help("output_separator")
+                        .takes_value(true)
+                        .required(false),
+                )
+                .arg(
+                    Arg::with_name("space_separator")
+                        .long("space_separator")
+                        .default_value("true")
+                        .short("sp")
+                        .long("space_separator")
+                        .help("use space as a separator for arrays, along with commas")
+
+                        .takes_value(true)
+                        .required(false),
+                )
+                .arg(
                     Arg::with_name("unique")
                         .short("u")
                         .long("unique")
                         .help("remove duplicates from an array")
                         .required(false),
-                )
-                .arg(
-                    Arg::with_name("input")
-                        .help("Input to process")
-                        .index(1)
-                        .required(true),
                 )
                 .arg(
                     Arg::with_name("capitalize")
@@ -35,19 +59,18 @@ fn main() {
                         .possible_values(&["camel", "pascal", "snake"])
                         .required(false),
                 )
-                // .arg(
-                //     Arg::with_name("Array to props")
-                //         .long("array_to_props")
-                //         .help("Turn an array into React props to be used inside a component")
-                //         .required(false),
-                // )
+                .subcommand(
+                    SubCommand::with_name("array_to_props")
+                        .help("Turn an array into React props to be used inside a component")
+                        .about("Turn an array into React props to be used inside a component")
 
-        .subcommand(
-            SubCommand::with_name("array_to_props")
-                .help("Turn an array into React props to be used inside a component")
-                .about("Turn an array into React props to be used inside a component")
+            )
+                .subcommand(
+                    SubCommand::with_name("props_to_array")
+                        .help("Turn an array of React props into an array of arguments")
+                        .about("Turn an array of React props into an array of arguments")
 
-    )
+            )
     )
         .subcommand(
             SubCommand::with_name("object")
@@ -82,21 +105,29 @@ fn main() {
     }
 }
 
-fn array_to_props(matches: &ArgMatches, submatches: &ArgMatches, data: &Vec<&str>) {
-    println!(
-        "\n\nUsing array: \n{:?}, \n{:?}, \n{:?}",
-        matches, submatches, data
-    );
-    // for elem in data {
-    //     elem = &"2";
-    // }
-    // return data;
+fn extract_propname(input: &str) -> String {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"(.*)=\{.*\}").unwrap();
+    }
+
+    match RE.captures(input) {
+        Some(c) => {
+            let s = c[1].to_string();
+            return s;
+        }
+        None => {
+            return String::new();
+        }
+    }
 }
 
-fn with_array(array_matches: &ArgMatches) {
-    // if array_matches.is_present("array") {
-    let data = array_matches.value_of("input").unwrap();
-    let data_no_whitespaces = data.replace(", ", ",");
+fn normalized_data(array_matches: &ArgMatches, input: &str) -> Vec<String> {
+    let data = array_matches.value_of(input).unwrap();
+    let mut data_no_whitespaces = data.replace(", ", ",");
+    data_no_whitespaces = data_no_whitespaces.replace("\n", ",");
+    if array_matches.is_present("space_separator") {
+        data_no_whitespaces = data_no_whitespaces.replace(" ", ",");
+    }
     let mut _data_as_array: Vec<&str> = data_no_whitespaces.split(',').collect();
     let mut data_as_array: Vec<String> = Vec::new();
     for d in &_data_as_array {
@@ -106,24 +137,29 @@ fn with_array(array_matches: &ArgMatches) {
     }
     data_as_array.sort();
 
-    // let mut array: Vec<_> =         .split(|c| c == ',' || c == ", ")
-    //     .collect();
-    println!("Matches data: {:?}\n\n", data_as_array);
-    // }
+    return data_as_array;
+}
+
+fn output_result(output: String) {
+    let stdout = io::stdout();
+
+    let mut handle = stdout.lock();
+
+    handle.write_all(output.as_bytes()).unwrap();
+    handle.write_all("\n".as_bytes()).unwrap();
+}
+
+fn with_array(array_matches: &ArgMatches) {
+    let mut data_as_array = normalized_data(array_matches, "input");
     if array_matches.is_present("unique") {
         // println!("Matches: {:?}", array_matches);
         data_as_array.dedup();
         println!("Matches data: {:?}\n\n", data_as_array);
     }
 
-    println!(
-        "Matches data: {:?} \n\n",
-        array_matches.is_present("capitalization")
-    );
     if array_matches.is_present("capitalize") {
         // println!("Matches: {:?}", array_matches);
         // data_as_array.dedup();
-        println!("Matches data: \n\n",);
         match array_matches.value_of("capitalize").unwrap() {
             "camel" => {
                 for x in &data_as_array {
@@ -137,21 +173,36 @@ fn with_array(array_matches: &ArgMatches) {
     }
 
     match array_matches.subcommand() {
-        ("array_to_props", Some(array_submatches)) => {
-            // array_to_props(&array_matches, array_submatches, &data_as_array);
+        ("array_to_props", Some(_array_submatches)) => {
             for elem in data_as_array.iter_mut() {
-                println!("ELEM: {}", elem);
-                let mut s = format!("{}={{{}}}", elem, elem);
-                println!("{}", s);
+                let s = format!("{}={{{}}}", elem, elem);
                 *elem = s;
             }
+
+            output_result(
+                data_as_array.join(array_matches.value_of("output_separator").unwrap_or(" ")),
+            )
+        }
+        ("props_to_array", Some(_array_submatches)) => {
+            for elem in data_as_array.iter_mut() {
+                let prop = extract_propname(elem);
+                if prop.len() > 0 {
+                    *elem = prop;
+                }
+            }
+
+            output_result(
+                data_as_array.join(array_matches.value_of("output_separator").unwrap_or(", ")),
+            )
         }
 
-        ("", None) => println!("No subcommand used"),
+        ("", None) => {
+            output_result(
+                data_as_array.join(array_matches.value_of("output_separator").unwrap_or(", ")),
+            );
+        }
         _ => println!("No known subcommand used",),
     }
-
-    println!("\n\nFinal: {:?} \n\n", data_as_array.join(" "));
 }
 
 fn is_different(
