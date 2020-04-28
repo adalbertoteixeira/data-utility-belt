@@ -48,6 +48,7 @@ fn main() {
                         .short("u")
                         .long("unique")
                         .help("remove duplicates from an array")
+                        .default_value("true")
                         .required(false),
                 )
                 .arg(
@@ -152,9 +153,7 @@ fn output_result(output: String) {
 fn with_array(array_matches: &ArgMatches) {
     let mut data_as_array = normalized_data(array_matches, "input");
     if array_matches.is_present("unique") {
-        // println!("Matches: {:?}", array_matches);
         data_as_array.dedup();
-        println!("Matches data: {:?}\n\n", data_as_array);
     }
 
     if array_matches.is_present("capitalize") {
