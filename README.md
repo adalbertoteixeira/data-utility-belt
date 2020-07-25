@@ -28,7 +28,10 @@ $ data-utility-belt array "cli os os cli"
 ### props to array (React)
 
 ```{bash}
-$ data-utility-belt array "goal={goal} strategy={strategy} idealinfluencer={idealinfluencer}" props_to_array`
+$ data-utility-belt array "
+  goal={goal} strategy={strategy} idealinfluencer={idealinfluencer}
+" props_to_array
+  
 
 > goal, idealinfluencer, strategy
 ```
@@ -45,6 +48,13 @@ data-utility-belt array "
   chatContext,
   counts,
 " array_to_props
+
+> chatContext={chatContext} 
+  childKey={childKey}
+  childType'={childType'}
+  counts={counts}
+  entityId={entityId}
+  entityType={entityType}
 ``` 
 
 ## Difference
