@@ -46,7 +46,7 @@ dependencies = [
 
 [[package]]
 name = "data-utility-belt"
-version = "0.1.1"
+version = "0.1.3"
 dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
