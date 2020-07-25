@@ -2,7 +2,7 @@
 
 CLI set of utilities to automate small common everyday tasks operated on strings, arrays and objects.
 
-Orientated towards JavaScript and React development, and still on it's very early stages-
+Orientated towards JavaScript and React development, and still on it's very early stages.
 
 ## Installation
 `cargo install data-utility-belt`
