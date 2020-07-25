@@ -25,7 +25,7 @@ $ data-utility-belt array "cli os os cli"
 ```
 
 
-### props to array (react)
+### props to array (React)
 
 ```{bash}
 $ data-utility-belt array "goal={goal} strategy={strategy} idealinfluencer={idealinfluencer}" props_to_array`
@@ -33,20 +33,19 @@ $ data-utility-belt array "goal={goal} strategy={strategy} idealinfluencer={idea
 > goal, idealinfluencer, strategy
 ```
 
-## Object
+### array to props (React) 
 
 ```{bash} 
 data-utility-belt array "
-  className: `${cbn}__actions__chat`,
-  entityType: 'deliverable',
-  entityId: id,
-  childType: 'campaign',
-  childKey: campaignId,
-  chatContext: 'deliverable',
-  counts: messagesCount,
+  className,
+  entityType,
+  entityId,
+  childType,
+  childKey,
+  chatContext,
+  counts,
 " object_to_props
 ``` 
-
 
 ## Difference
 ```{bash}
