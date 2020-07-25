@@ -7,9 +7,10 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use regex::Regex;
 use serde_json::{json, Map, Value};
 use std::io::{self, Write};
-// use std::collections::HashMap;
 
-fn main() {
+mod is_different;
+// use std::collections::HashMap;
+pub fn main() {
     let matches = App::new("Data utility Belt")
                 .version("0.1")
                 .author("Adalberto Teixeira")
@@ -58,6 +59,14 @@ fn main() {
                         .help("Performs capitalization operations on the array.")
                         .takes_value(true)
                         .possible_values(&["camel", "pascal", "snake"])
+                        .required(false),
+                )
+                .arg(
+                    Arg::with_name("debug")
+                        .short("d")
+                        .long("debug")
+                        .help("print debug statements")
+                        .default_value("false")
                         .required(false),
                 )
                 .subcommand(
@@ -204,64 +213,46 @@ fn with_array(array_matches: &ArgMatches) {
     }
 }
 
-fn is_different(
-    object: &Map<String, Value>,
-    object_to_compare: &Map<String, Value>,
-    key: &String,
-    object_differences: Map<String, Value>,
-) -> Map<String, Value> {
-    let mut new_diffs = object_differences;
-    let key_original = &object.get(key);
-    let key_to_compare = &object_to_compare.get(key);
-    if key_to_compare.is_none() {
-        new_diffs.insert(key.to_string().clone(), json!([object[key].clone(), null]));
-        return new_diffs;
-    }
-
-    if !key_original.unwrap().is_array()
-        && !key_original.unwrap().is_object()
-        && key_original.unwrap() != key_to_compare.unwrap()
-    {
-        println!(
-            "Chcking KEY: {}, {}, {}",
-            key,
-            key_original.unwrap().is_array(),
-            key_original.unwrap().is_object()
-        );
-        new_diffs.insert(
-            key.to_string().clone(),
-            json!([object[key].clone(), object_to_compare[key].clone()]),
-        );
-        return new_diffs;
-    }
-
-    if key_original.unwrap().is_array() {}
-    println!("A: {:?}, \n\nb: {:?}", object, object_to_compare);
-    return new_diffs;
-}
-// fn is_different(value: &Value, value_to_compare: &Value) -> bool {
-//     let mut is_diff = false;
-//     println!("A: {:?}, b: {:?}", value, value_to_compare);
-//     return is_diff;
+// fn is_value_different(key: &String, object_differences: Map<String, Value>) -> Map<String, Value> {
+//     println!(
+//         "KEY: {:?},\nOBJECT_DIFFERENCES: {:?}",
+//         key, object_differences
+//     );
+//     return object_differences;
 // }
 
 fn with_object(object_matches: &ArgMatches) {
     if object_matches.is_present("difference") {
-        let mut object_differences = Map::new();
+        let mut object_differences = json!({});
         let object = object_matches.value_of("object").unwrap();
         let parsed_object: Value = serde_json::from_str(object).unwrap();
         let o: Map<String, Value> = parsed_object.as_object().unwrap().clone();
         let object_compare = object_matches.value_of("object_to_compare").unwrap();
         let parsed_object_compare: Value = serde_json::from_str(object_compare).unwrap();
         let o_c: Map<String, Value> = parsed_object_compare.as_object().unwrap().clone();
+        let mut debug = false;
+        if object_matches.is_present("debug") {
+            debug = true;
+        }
         for key in o.keys() {
-            object_differences = is_different(&o, &o_c, &key, object_differences);
-            println!(
-                "KEY: {:?}, {:?}  {:?}\n\n\n",
-                key,
-                o_c.get(key).is_none(),
-                o_c.get(key).is_some(),
+            // object_differences =
+            let mut parent_key: Vec<String> = Vec::new();
+            let mut parent_pointer = "/".to_owned();
+            is_different::is_different(
+                &parsed_object,
+                &parsed_object_compare,
+                &key,
+                &mut object_differences,
+                &parent_key,
+                &mut parent_pointer,
+                debug,
             );
+            // println!(
+            //     "KEY: {:?}, {:?}  {:?}\n\n\n",
+            //     key,
+            //     o_c.get(key).is_none(),
+            //     o_c.get(key).is_some(),
+            // );
 
             // if is_diff {
             // object_differences
@@ -278,5 +269,7 @@ fn with_object(object_matches: &ArgMatches) {
         //     }
         // }
         println!("object differences: {:?}", object_differences);
+        let v = serde_json::to_string_pretty(&object_differences).unwrap();
+        println!("{:?}", v)
     }
 }
