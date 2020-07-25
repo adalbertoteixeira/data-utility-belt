@@ -44,7 +44,7 @@ data-utility-belt array "
   childKey,
   chatContext,
   counts,
-" object_to_props
+" array_to_props
 ``` 
 
 ## Difference
