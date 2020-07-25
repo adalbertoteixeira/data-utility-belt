@@ -19,7 +19,7 @@ Operations performed on arrays.
 
 By default any array passed in will remove duplicate values.
 ```{bash}
-$ data_utility_belt array "cli os os cli"
+$ data-utility-belt array "cli os os cli"
 
 > cli, os
 ```
@@ -28,7 +28,7 @@ $ data_utility_belt array "cli os os cli"
 ### props to array (react)
 
 ```{bash}
-$ data_utility_belt array "goal={goal} strategy={strategy} idealinfluencer={idealinfluencer}" props_to_array`
+$ data-utility-belt array "goal={goal} strategy={strategy} idealinfluencer={idealinfluencer}" props_to_array`
 
 > goal, idealinfluencer, strategy
 ```
