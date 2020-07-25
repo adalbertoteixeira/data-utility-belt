@@ -1,5 +1,5 @@
 [package]
-name = "data-utility-belt"
+name = "data_utility_belt"
 version = "0.1.1"
 authors = ["Adalberto Teixeira"]
 edition = "2018"

@@ -5,7 +5,7 @@
 ### Remove duplicates (default: true)
 
 ```{bash}
-$ data-utility-belt array "cli os os cli"
+$ data_utility_belt array "cli os os cli"
 
 > cli, os
 ```
